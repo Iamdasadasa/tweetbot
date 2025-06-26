@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel(model_name="models/gemini-pro")
+model = genai.GenerativeModel(model_name="models/gemini-2.0-flash")
 
 @app.route("/webhook", methods=["POST"])
 def webhook_handler():
