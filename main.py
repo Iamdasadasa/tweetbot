@@ -1,26 +1,26 @@
 from flask import Flask
-import tweepy
 import os
+import google.generativeai as genai
 
 app = Flask(__name__)
 
+# 環境変数からAPIキー取得
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Geminiの初期化
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel("gemini-pro")
+
 @app.route("/")
-def post_tweet():
-    consumer_key = os.getenv("API_KEY")
-    consumer_secret = os.getenv("API_SECRET")
-    access_token = os.getenv("ACCESS_TOKEN")
-    access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
-
-    auth = tweepy.OAuth1UserHandler(consumer_key, consumer_secret, access_token, access_token_secret)
-    api = tweepy.API(auth)
-
-    tweet_text = "今日もがんばろう！ #モンハン #ねむねむ"
-
+def generate_response():
+    prompt = "今日の面白い一言をください（140文字以内で）"
     try:
-        api.update_status(tweet_text)
-        return "✅ ツイート成功！"
+        response = model.generate_content(prompt)
+        result = response.text
+        print(f"💬 Geminiの応答: {result}")
+        return f"✅ Gemini応答を取得: {result}"
     except Exception as e:
-        return f"❌ ツイート失敗: {str(e)}"
+        return f"❌ エラー: {e}"
 
 if __name__ == "__main__":
     app.run()
