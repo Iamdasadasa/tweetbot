@@ -14,14 +14,24 @@ def load_prompt():
     with open(prompt_path, "r", encoding="utf-8") as f:
         return f.read()
 
+HASHTAGS = """
+#モンハンワイルズ
+#モンハン
+#モンスターハンター
+#MHWilds
+#モンスターハンターワイルズ
+#モンハンワイルズ募集
+"""
+
 @app.route("/webhook", methods=["POST"])
 def webhook_handler():
     prompt = load_prompt()
     try:
         response = model.generate_content(prompt)
-        result = response.text
-        print(f"💬 Geminiの応答: {result}")
-        return result
+        result = response.text.strip()
+        result_with_tags = f"{result}\n{HASHTAGS.strip()}"
+        print(f"💬 Geminiの応答:\n{result_with_tags}")
+        return result_with_tags
     except Exception as e:
         return f"❌ エラー: {e}", 500
 
