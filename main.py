@@ -1,19 +1,27 @@
 from flask import Flask, request
 import os
 import google.generativeai as genai
+import tweepy
 
 app = Flask(__name__)
 
-# 環境変数からAPIキーを取得
+# --- Gemini 設定 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
+PROMPT = os.getenv("PROMPT_TEXT")
+
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel(model_name="models/gemini-2.0-flash")
 
-def load_prompt():
-    prompt_path = os.path.join("prompt", "mh_prompt.txt")
-    with open(prompt_path, "r", encoding="utf-8") as f:
-        return f.read()
+# --- X (旧Twitter) 認証 ---
+CONSUMER_KEY = os.getenv("API_KEY")
+CONSUMER_SECRET = os.getenv("API_SECRET")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET")
 
+auth = tweepy.OAuth1UserHandler(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api = tweepy.API(auth)
+
+# --- 固定ハッシュタグ ---
 HASHTAGS = """
 #モンハンワイルズ
 #モンハン
@@ -25,14 +33,21 @@ HASHTAGS = """
 
 @app.route("/webhook", methods=["POST"])
 def webhook_handler():
-    prompt = load_prompt()
+    if not PROMPT:
+        return "❌ PROMPT_TEXT の環境変数が設定されていません。", 500
+
     try:
-        response = model.generate_content(prompt)
+        # Gemini で文章生成
+        response = model.generate_content(PROMPT)
         result = response.text.strip()
-        result_with_tags = f"{result}\n{HASHTAGS.strip()}"
-        print(f"💬 Geminiの応答:\n{result_with_tags}")
-        return result_with_tags
+        tweet = f"{result}\n{HASHTAGS.strip()}"
+
+        # X に投稿
+        api.update_status(tweet)
+        print(f"✅ 投稿成功:\n{tweet}")
+        return f"✅ ツイート完了:\n{tweet}"
     except Exception as e:
+        print(f"❌ 投稿失敗: {e}")
         return f"❌ エラー: {e}", 500
 
 if __name__ == "__main__":
