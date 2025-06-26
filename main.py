@@ -49,6 +49,10 @@ def webhook_handler():
         print(f"❌ 投稿失敗: {e}")
         return f"❌ エラー: {e}", 500
 
+@app.route("/", methods=["GET"])
+def index():
+    return "👋 TweetBot is awake and running.", 200
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
