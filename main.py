@@ -47,7 +47,7 @@ def webhook_handler():
         return f"✅ ツイート完了:\n{tweet}"
     except Exception as e:
         print(f"❌ 投稿失敗: {e}")
-        return f"❌ エラー: {e}", 500
+        return str(e), 500
 
 @app.route("/", methods=["GET"])
 def index():
