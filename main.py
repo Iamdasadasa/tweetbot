@@ -29,7 +29,7 @@ HASHTAGS = """
 #モンスターハンターワイルズ
 #モンハンワイルズ募集
 """
-
+# ツイート投稿用のWebhookエンドポイント
 @app.route("/webhook", methods=["POST"])
 def webhook_handler():
     if not PROMPT:
@@ -49,11 +49,12 @@ def webhook_handler():
         print(f"❌ 投稿失敗: {e}")
         return str(e), 500
 
+# Botの起動確認用（RenderのHealth Checkなど）
 @app.route("/", methods=["GET"])
 def index():
     return "👋 TweetBot is awake and running.", 200
 
-
+# レートリミットの状況を確認するエンドポイント
 @app.route("/ratelimit", methods=["GET"])
 def check_rate_limit():
     try:
