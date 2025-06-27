@@ -55,20 +55,19 @@ def index():
     return "👋 TweetBot is awake and running.", 200
 
 # レートリミットの状況を確認するエンドポイント
+import requests
 @app.route("/ratelimit", methods=["GET"])
 def check_rate_limit():
     try:
-        # ダミーで /tweets を叩く（何もしないGET系）
-        res = client.get_home_timeline(max_results=1)
+        url = "https://api.twitter.com/2/users/me"  # 軽いGETリクエスト先
+        headers = {
+            "Authorization": f"Bearer {os.getenv('BEARER_TOKEN')}"
+        }
 
-        headers = res.meta  # tweepy v4系以降は .meta に残らないので注意！
-
-        # ヘッダーにレート情報は ._headers で取得できる（非公開属性）
-        raw = res._headers
-
-        limit = raw.get("x-rate-limit-limit", "N/A")
-        remaining = raw.get("x-rate-limit-remaining", "N/A")
-        reset = raw.get("x-rate-limit-reset", "N/A")
+        res = requests.get(url, headers=headers)
+        limit = res.headers.get("x-rate-limit-limit", "N/A")
+        remaining = res.headers.get("x-rate-limit-remaining", "N/A")
+        reset = res.headers.get("x-rate-limit-reset", "N/A")
 
         return f"""✅ Rate Limit Info:
 - limit: {limit}
@@ -77,6 +76,7 @@ def check_rate_limit():
 """, 200
     except Exception as e:
         return f"❌ レート情報の取得に失敗しました: {e}", 500
+
 
 
 if __name__ == "__main__":
