@@ -53,6 +53,31 @@ def webhook_handler():
 def index():
     return "👋 TweetBot is awake and running.", 200
 
+
+@app.route("/ratelimit", methods=["GET"])
+def check_rate_limit():
+    try:
+        # ダミーで /tweets を叩く（何もしないGET系）
+        res = client.get_home_timeline(max_results=1)
+
+        headers = res.meta  # tweepy v4系以降は .meta に残らないので注意！
+
+        # ヘッダーにレート情報は ._headers で取得できる（非公開属性）
+        raw = res._headers
+
+        limit = raw.get("x-rate-limit-limit", "N/A")
+        remaining = raw.get("x-rate-limit-remaining", "N/A")
+        reset = raw.get("x-rate-limit-reset", "N/A")
+
+        return f"""✅ Rate Limit Info:
+- limit: {limit}
+- remaining: {remaining}
+- reset: {reset} (Unix time)
+""", 200
+    except Exception as e:
+        return f"❌ レート情報の取得に失敗しました: {e}", 500
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
