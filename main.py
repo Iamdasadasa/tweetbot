@@ -59,12 +59,11 @@ import requests
 @app.route("/ratelimit", methods=["GET"])
 def check_rate_limit():
     try:
-        url = "https://api.twitter.com/2/users/me"  # 軽いGETリクエスト先
-        headers = {
-            "Authorization": f"Bearer {os.getenv('BEARER_TOKEN')}"
-        }
+        # Tweepyのセッションを直接使ってリクエスト
+        url = "https://api.twitter.com/2/tweets?ids=20"  # 既存ツイート取得 (軽量)
+        auth = client.session.auth  # Tweepy Clientの認証を使い回し
+        res = requests.get(url, auth=auth)
 
-        res = requests.get(url, headers=headers)
         limit = res.headers.get("x-rate-limit-limit", "N/A")
         remaining = res.headers.get("x-rate-limit-remaining", "N/A")
         reset = res.headers.get("x-rate-limit-reset", "N/A")
